@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol"; //オーナーのみ表示させる
 import "@openzeppelin/contracts/utils/Counters.sol"; //カウントをインクリメント
 
-contract MenberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
-    constructor() ERC721("MenberNFT", "MEM") {}
+contract MemberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
+    constructor() ERC721("MemberNFT", "MEM") {}
 
     /**
      * @dev
@@ -37,6 +37,4 @@ contract MenberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
     function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         return super.tokenURI(tokenId);
     }
-
-
 }

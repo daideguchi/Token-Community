@@ -8,7 +8,30 @@ import "@openzeppelin/contracts/access/Ownable.sol"; //オーナーのみ表示�
 import "@openzeppelin/contracts/utils/Counters.sol"; //カウントをインクリメント
 
 contract MemberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
+    //OZのCouterを使う。Countersライブラリの中にある「Counter」を使う。という意味
+    
+    /**
+     * @dev
+     * _tokenIdsはCounterの全関数が利用可能
+     */
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
     constructor() ERC721("MemberNFT", "MEM") {}
+
+    //NFTを作成するには、送る先のアドレスと、URIを引数で受け取る必要がある
+    //データの保存領域には、storage(EVMに永続的に保存)するものと、calldata、memory（一時的に保存）の３つがある
+    //calldataは変数データ変更不可、memoryは変更可
+    /**
+     * @dev
+     * このコントラクトをデプロイしたアドレスだけがmint可能 onlyOwner
+     */
+    function nftMint(address to, string calldata uri) external onlyOwner{
+        _tokenIds.increment(); //0を1増やして「1」にする
+        uint256 newTokenId = _tokenIds.current();
+        _mint(to, newTokenId);//NFT作成
+        _setTokenURI(newTokenId, uri); //newTokenIdにuriを紐づける
+    }
 
     /**
      * @dev

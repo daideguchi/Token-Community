@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol"; //カウントをインク�
 
 contract MemberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
     //OZのCouterを使う。Countersライブラリの中にある「Counter」を使う。という意味
-    
+
     /**
      * @dev
      * _tokenIdsはCounterの全関数が利用可能
@@ -22,7 +22,11 @@ contract MemberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
      * @dev
      * 誰にどのtokenId,URIでNFTをmintしたかを記録する →emitが実行されたタイミングで記録される
      */
-    event TokenURIChanged(address indexed to, uint256 indexed tokenId, string uri);
+    event TokenURIChanged(
+        address indexed to,
+        uint256 indexed tokenId,
+        string uri
+    );
 
     constructor() ERC721("MemberNFT", "MEM") {}
 
@@ -33,10 +37,10 @@ contract MemberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
      * @dev
      * このコントラクトをデプロイしたアドレスだけがmint可能 onlyOwner
      */
-    function nftMint(address to, string calldata uri) external onlyOwner{
+    function nftMint(address to, string calldata uri) external onlyOwner {
         _tokenIds.increment(); //0を1増やして「1」にする
-        uint256 newTokenId = _tokenIds.current();//さらにここで１増やす
-        _mint(to, newTokenId);//NFT作成
+        uint256 newTokenId = _tokenIds.current(); //さらにここで１増やす
+        _mint(to, newTokenId); //NFT作成
         _setTokenURI(newTokenId, uri); //newTokenIdにuriを紐づける
         emit TokenURIChanged(to, newTokenId, uri);
     }
@@ -60,11 +64,21 @@ contract MemberNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         super._burn(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
         return super.tokenURI(tokenId);
     }
 }

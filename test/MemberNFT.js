@@ -20,7 +20,7 @@ describe("MemberNFTコントラクト", function () {
     /** ここからデプロイの準備ーーーーーーーーーーーー*/
     MemberNFT = await ethers.getContractFactory("MemberNFT");
     memberNFT = await MemberNFT.deploy(); //ここでデプロイできる
-    memberNFT.deployed(); //ここまでがデプロイを完了させるまでの流れ
+    await memberNFT.deployed(); //ここまでがデプロイを完了させるまでの流れ
     /**ここまでーーーーーーーーーーーー */
   });
 

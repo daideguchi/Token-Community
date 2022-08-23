@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIY
 pragma solidity ^0.8.9;
 
-
 //状態変数の定義
 contract TokenBank {
     /// @dev Tokenの名前
@@ -33,21 +32,35 @@ contract TokenBank {
     );
 
     /// @dev Token預入時のイベント
-    event TokenDeposit(
-        address indexed from,
-        uint amount
-    );
+    event TokenDeposit(address indexed from, uint amount);
 
     /// @dev Token引出時のイベント
-    event TokenWithdraw(
-        address indexed from,
-        uint amount
-    );
+    event TokenWithdraw(address indexed from, uint amount);
 
-    constructor (string memory name_, string memory symbol_) {
+    constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
         owner = msg.sender; //デプロイ（署名）するときのアドレス
         _balances[owner] = _totalSupply; //_balances[owner]：オーナーの持っている残高uint256型
+    }
+
+    /// @dev Tokenの名前を返す
+    function name() public view returns (string memory) {
+        return _name;
+    }
+
+    /// @dev Tokenのシンボルを返す
+    function symbol() public view returns (string memory) {
+        return _symbol;
+    }
+
+    /// @dev Tokenの総供給数を返す 定数を返すので「pure」を使う
+    function TotalSupply() public pure returns (uint256) {
+        return _totalSupply;
+    }
+
+    /// @dev 指定アカウントアドレスのToken残高を返す addressをaccountで受け取る
+    function balanceOf(address account) public view returns(uint256){
+        return _balances[account];
     }
 }

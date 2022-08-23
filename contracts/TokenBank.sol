@@ -44,4 +44,10 @@ contract TokenBank {
         uint amount
     );
 
+    constructor (string memory name_, string memory symbol_) {
+        _name = name_;
+        _symbol = symbol_;
+        owner = msg.sender; //デプロイ（署名）するときのアドレス
+        _balances[owner] = _totalSupply; //_balances[owner]：オーナーの持っている残高uint256型
+    }
 }

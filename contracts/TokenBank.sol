@@ -55,7 +55,7 @@ contract TokenBank {
     }
 
     /// @dev Tokenの総供給数を返す 定数を返すので「pure」を使う
-    function TotalSupply() public pure returns (uint256) {
+    function totalSupply() public pure returns (uint256) {
         return _totalSupply;
     }
 

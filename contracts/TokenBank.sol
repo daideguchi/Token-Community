@@ -36,13 +36,14 @@ contract TokenBank {
 
     /// @dev Token引出時のイベント
     event TokenWithdraw(address indexed from, uint amount);
-
+/////////////////////////////////////////////////////////////////
     constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
         owner = msg.sender; //デプロイ（署名）するときのアドレス
         _balances[owner] = _totalSupply; //_balances[owner]：オーナーの持っている残高uint256型
     }
+/////////////////////////////////////////////////////////////////
 
     /// @dev Tokenの名前を返す
     function name() public view returns (string memory) {
@@ -77,12 +78,35 @@ contract TokenBank {
         uint256 amount
     ) internal {
         require(to != address(0), "Zero address cannot be specified for 'to'");
-        uint256 fromBalance = _balances[from];
+        uint256 fromBalance = _balances[from]; //from 送り手の残高
 
         require(fromBalance >= amount, "Insufficient balance!");
 
         _balances[from] = fromBalance - amount;
         _balances[to] += amount;
-        emit TokenTransfer(from, to, amount);
+        emit TokenTransfer(from, to, amount); //28
+    }
+
+    //以下二つの関数はprivateで定義されている変数をpublicで返すもの
+    /// @dev TokenBankが預かっているTokenの総額を返す
+    function bankTotalDeposit() public view returns (uint256) {
+        return _bankTotalDeposit;
+    }
+
+    /// @dev TokenBankが預かっている指定アカウントアドレスのToken数を返す
+    function bankBalanceOf(address account) public view returns (uint256) {
+        return _tokenBankBalances[account];
+    }
+
+    /// @dev Tokenを預ける
+    function deposit(uint256 amount) public {
+        address from = msg.sender;
+        address to = owner;
+
+        _transfer(from, to, amount); //74
+
+        _tokenBankBalances[from] += amount;
+        _bankTotalDeposit += amount;
+        emit TokenDeposit(from, amount);//35
     }
 }

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIY
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 //状態変数の定義
@@ -109,4 +109,20 @@ contract TokenBank {
         _bankTotalDeposit += amount;
         emit TokenDeposit(from, amount);//35
     }
+
+        /// @dev Tokenを引き出す
+        function withdraw(uint256 amount) public {
+            address to = msg.sender;
+            address from = owner;
+            uint256 toTokenBankBalance = _tokenBankBalances[to];
+
+            require(toTokenBankBalance >= amount, "An amount greater than your tokenBank balance!");
+
+            _transfer(from, to, amount);
+
+            _tokenBankBalances[to] -= amount;
+            _bankTotalDeposit -= amount;
+            emit TokenWithdraw(to, amount);
+        }
+
 }

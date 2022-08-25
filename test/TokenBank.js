@@ -90,13 +90,13 @@ describe("TokenBankコントラクト", function () {
   });
 
   describe("Bankトランザクション", function () {
-    beforeEach(async function () {
-      await tokenBank.transfer(addr1.address, 500);
-      await tokenBank.transfer(addr2.address, 200);
-      await tokenBank.transfer(addr3.address, 100);
-      await tokenBank.connect(addr1).deposit(100);
-      await tokenBank.connect(addr2).deposit(200);
-    });
+        beforeEach(async function () {
+          await tokenBank.transfer(addr1.address, 500);
+          await tokenBank.transfer(addr2.address, 200);
+          await tokenBank.transfer(addr3.address, 100);
+          await tokenBank.connect(addr1).deposit(100);
+          await tokenBank.connect(addr2).deposit(200);
+        });    
     it("トークン預け入れが実行できるべき", async function () {
       const addr1Balance = await tokenBank.balanceOf(addr1.address);
       expect(addr1Balance).to.equal(400);
@@ -121,7 +121,47 @@ describe("TokenBankコントラクト", function () {
           //emit 第一引数はオブジェクト、第二引数はイベントの名前
         )
           .emit(tokenBank, "TokenDeposit")
-          .withArgs(addr1.address, 100);
+            .withArgs(addr1.address, 100);
     });
+      it("トークン引き出しが実行できるべき", async function () {
+        //withdraw前のaddr1の預入残高合計(addr1側から見たaddr1の預入残高)
+        const startBankBalance = await tokenBank
+          .connect(addr1)
+          .bankBalanceOf(addr1.address);
+        //withdraw前の銀行の残高合計(銀行側から見たaddr1の預入残高)
+        const startTotalBankBalance = await tokenBank.connect(addr1).bankTotalDeposit();
+
+          //addr1が100引き出す
+        await tokenBank.connect(addr1).withdraw(100);
+
+        //withdraw後のaddr1の預入残高合計
+        const endBankBalance = await tokenBank
+          .connect(addr1)
+          .bankBalanceOf(addr1.address);
+        //withdraw後の銀行の残高合計
+        const endTotalBankBalance = await tokenBank
+          .connect(addr1)
+          .bankTotalDeposit();
+          expect(endBankBalance).to.equal(startBankBalance.sub(100));
+          expect(endTotalBankBalance).to.equal(startTotalBankBalance.sub(100));
+
+      });
+      it("預け入れトークンが不足していた場合、引き出しに失敗すべき", async function () { 
+          await expect(
+            tokenBank.connect(addr1).withdraw(101)
+          ).to.be.revertedWith(
+            "An amount greater than your tokenBank balance!"
+          );
+      });
+      it("引き出し後には、'TokenWithdraw'が発行されるべき", async function () { 
+              await expect(
+                tokenBank.connect(addr1).withdraw(100)
+                //withArgsはイベントの引数を指定するもの
+                //emit 第一引数はオブジェクト、第二引数はイベントの名前
+              )
+                .emit(tokenBank, "TokenWithdraw")
+                .withArgs(addr1.address, 100);
+      });
+    
   });
 });

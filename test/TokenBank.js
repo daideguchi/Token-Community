@@ -179,5 +179,34 @@ describe("TokenBankコントラクト", function () {
         .emit(tokenBank, "TokenWithdraw")
         .withArgs(addr1.address, 100);
     });
+      it("オーナー(銀行)による預入は失敗すべき", async function () {
+          await expect(tokenBank.deposit(1))
+              .to.be.revertedWith("Owner cannot execute")
+      });
+      it("オーナーによる引き出しは失敗すべき", async function () {
+          await expect(tokenBank.withdraw(1)).to.be.revertedWith(
+            "Owner cannot execute"
+          );
+      });
+      it("トータル預入トークン数より大きな数はオーナーであっても移転に失敗すべき", async function () {
+          await expect(tokenBank.transfer(addr1.address, 201)).to.be.revertedWith(
+            "Amounts greater than the total supply cannot be transferred"
+          );
+      });
+      it("NFTメンバー以外の移転は失敗すべき", async function () {
+          await expect(
+            tokenBank.connect(addr3).transfer(addr1.address, 100)
+          ).to.be.revertedWith("not NFT member");
+      });
+      it("NFTメンバー以外の預入は失敗すべき", async function () {
+          await expect(
+            tokenBank.connect(addr3).deposit(1)
+          ).to.be.revertedWith("not NFT member");
+      });
+      it("NFTメンバー以外の引き出しは失敗すべき", async function () {
+          await expect(tokenBank.connect(addr3).withdraw(1)).to.be.revertedWith(
+            "not NFT member"
+          );
+      });
   });
 });

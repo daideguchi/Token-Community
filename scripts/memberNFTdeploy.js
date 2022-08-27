@@ -17,8 +17,8 @@ const main = async () => {
     "ipfs://bafybeigyod7ldrnytkzrw45gw2tjksdct6qaxnsc7jdihegpnk2kskpt7a/metadata5.json";
 
   //デプロイ
-  MemberNFT = await ethers.getContractFactory("MemberNFT");
-  memberNFT = await MemberNFT.deploy(); //ここでデプロイできる
+  const MemberNFT = await ethers.getContractFactory("MemberNFT");
+  const memberNFT = await MemberNFT.deploy(); //ここでデプロイできる
   await memberNFT.deployed(); //ここまでがデプロイを完了させるまでの流れ
 
   console.log(

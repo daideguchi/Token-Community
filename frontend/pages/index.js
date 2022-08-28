@@ -32,9 +32,27 @@ export default function Home() {
     }
   }
 
-  useEffect(() => {
-    checkMetaMaskInstalled()
-  },[])
+  const checkChainId = async () => {
+    const { ethereum } = window;
+    if (ethereum) {
+      const chain = await ethereum.request({
+        method: 'eth_chainId'
+      });
+      console.log(`chain: ${chain}`);
+
+      if (chain != rinkebyId) {
+        alert('Rinkebyに接続してください!');
+        return
+      } else {
+        setChainId(true)
+      }
+    }
+  }
+
+    useEffect(() => {
+      checkMetaMaskInstalled();
+      checkChainId()
+    }, []);
 
   return (
     <div

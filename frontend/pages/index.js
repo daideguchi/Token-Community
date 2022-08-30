@@ -32,6 +32,7 @@ export default function Home() {
     }
   }
 
+  //②
   const checkChainId = async () => {
     const { ethereum } = window;
     if (ethereum) {
@@ -57,9 +58,28 @@ export default function Home() {
       });
       console.log(`account: ${accounts[0]}`)
       setAccount(accounts[0])
+
+      ethereum.on('accountsChanged', checkAccountChanged);//①
+      ethereum.on('chainChanged', checkChainId);//②
     } catch (err) {
       console.log(err)
     }
+  }
+
+  //①ハンドラー関数  chainId以外初期化
+  const checkAccountChanged = () => {
+    setAccount('');
+    setNftOwner(false);
+    setItems([]);
+    setTokenBalance('');
+    setBankBalance('');
+    setBankTotalDeposit('');
+    setInputData({
+      transferAddress: "",
+      transferAmount: "",
+      depositAmount: "",
+      withdrawAmount: "",
+    });
   }
 
     useEffect(() => {

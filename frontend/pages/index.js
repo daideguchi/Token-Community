@@ -1,15 +1,15 @@
-import Head from 'next/head'
-import { useState, useEffect } from 'react'
-import { ethers } from 'axios'
-import axios from 'axios'
-import { memberNFTAddress, tokenBankAddress } from '../../contracts'
-import MemberNFT from '../contracts/MemberNFT.json'
-import TokenBank from '../contracts/TokenBank.json'
+import Head from "next/head";
+import { useState, useEffect } from "react";
+import { ethers } from "axios";
+import axios from "axios";
+import { memberNFTAddress, tokenBankAddress } from "../../contracts";
+import MemberNFT from "../contracts/MemberNFT.json";
+import TokenBank from "../contracts/TokenBank.json";
 
 // import Image from 'next/image'
 
 export default function Home() {
-  const [account, setAccount] = useState("");//[現在値、更新値]＝初期値
+  const [account, setAccount] = useState(""); //[現在値、更新値]＝初期値
   const [chainId, setChainId] = useState(false);
   const [tokenBalance, setTokenBalance] = useState("");
   const [bankBalance, setBankBalance] = useState("");
@@ -28,65 +28,90 @@ export default function Home() {
   const checkMetaMaskInstalled = async () => {
     const { ethereum } = window;
     if (!ethereum) {
-      alert('MetaMaskをインストールしてください')
+      alert("MetaMaskをインストールしてください");
     }
-  }
+  };
 
   //②
   const checkChainId = async () => {
     const { ethereum } = window;
     if (ethereum) {
       const chain = await ethereum.request({
-        method: 'eth_chainId'
+        method: "eth_chainId",
       });
       console.log(`chain: ${chain}`);
 
       if (chain != rinkebyId) {
-        alert('Rinkebyに接続してください!');
-        return
+        alert("Rinkebyに接続してください!");
+        return;
       } else {
-        setChainId(true)
+        setChainId(true);
       }
     }
-  }
+  };
 
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
       const accounts = await ethereum.request({
-        method: 'eth_requestAccounts'
+        method: "eth_requestAccounts",
       });
-      console.log(`account: ${accounts[0]}`)
-      setAccount(accounts[0])
+      console.log(`account: ${accounts[0]}`);
+      setAccount(accounts[0]);
 
-      ethereum.on('accountsChanged', checkAccountChanged);//①
-      ethereum.on('chainChanged', checkChainId);//②
+      //スマートコントラクトと接続するにはプロバイダを設定する必要がある。
+      //metamaskは「インフラ」と言うプロバイダが使われており、「ethereum」と指定する
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      //メタマスクのアカウントを取得
+      const signer = provider.getSinger();
+      //TokenBankのコントラクトオブジェクトを作る。ethメソッドでインスタンス化
+      const tokenBankContract = new ethers.Contract(
+        tokenBankAddress,
+        TokenBank.abi,
+        signer
+      );
+      //tokenBankContractを使ってクエリを発行
+      const tBalance = await tokenBankContract.balanceOf(accounts[0]);
+      console.log(`tBalance: ${tBalance}`);
+      //useステートでtBalanceを保存,BigNumberを扱えるようにtoNumberで変換
+      setTokenBalance(tBalance.toNumber());
+
+      const bBalance = await tokenBankContract.bankBalanceOf(account[0]);
+      console.log(`bBalance: ${bBalance}`);
+      setTokenBalance(bBalance.toNumber());
+
+      const totalDeposit = await tokenBankContract.bankTotalDeposit();
+      console.log(`totalDeposit: ${totalDeposit}`);
+      setTokenBalance(totalDeposit.toNumber());
+
+
+      ethereum.on("accountsChanged", checkAccountChanged); //①
+      ethereum.on("chainChanged", checkChainId); //②
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
-  }
+  };
 
   //①ハンドラー関数  chainId以外初期化
   const checkAccountChanged = () => {
-    setAccount('');
+    setAccount("");
     setNftOwner(false);
     setItems([]);
-    setTokenBalance('');
-    setBankBalance('');
-    setBankTotalDeposit('');
+    setTokenBalance("");
+    setBankBalance("");
+    setBankTotalDeposit("");
     setInputData({
       transferAddress: "",
       transferAmount: "",
       depositAmount: "",
       withdrawAmount: "",
     });
-  }
+  };
 
-    useEffect(() => {
-      checkMetaMaskInstalled();
-      checkChainId()
-    }, []);
-
+  useEffect(() => {
+    checkMetaMaskInstalled();
+    checkChainId();
+  }, []);
 
   // 以下、フロントエンド
   return (

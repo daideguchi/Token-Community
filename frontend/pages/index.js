@@ -85,6 +85,8 @@ export default function Home() {
       console.log(`totalDeposit: ${totalDeposit}`);
       setTokenBalance(totalDeposit.toNumber());
 
+      dheckNft(accounts[0]);
+
 
       ethereum.on("accountsChanged", checkAccountChanged); //①
       ethereum.on("chainChanged", checkChainId); //②
@@ -108,6 +110,21 @@ export default function Home() {
       withdrawAmount: "",
     });
   };
+
+  const checkNft = async (addr) => {
+    const { ethereum } = window;
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const memberNFTContract = new ethers.Contract(memberNFTAddress, MemberNFT.abi, signer);
+    const balance = await memberNFTContract.balanceOf(addr)
+    console.log(`nftBalance: &{balance.toNumber()}`);
+
+    if (balance.toNumber() > 0) {
+      setNftOwner(true);
+    } else {
+      ''
+    }
+  }
 
   useEffect(() => {
     checkMetaMaskInstalled();

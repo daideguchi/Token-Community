@@ -87,7 +87,6 @@ export default function Home() {
 
       dheckNft(accounts[0]);
 
-
       ethereum.on("accountsChanged", checkAccountChanged); //①
       ethereum.on("chainChanged", checkChainId); //②
     } catch (err) {
@@ -115,16 +114,20 @@ export default function Home() {
     const { ethereum } = window;
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
-    const memberNFTContract = new ethers.Contract(memberNFTAddress, MemberNFT.abi, signer);
-    const balance = await memberNFTContract.balanceOf(addr)
+    const memberNFTContract = new ethers.Contract(
+      memberNFTAddress,
+      MemberNFT.abi,
+      signer
+    );
+    const balance = await memberNFTContract.balanceOf(addr);
     console.log(`nftBalance: &{balance.toNumber()}`);
 
     if (balance.toNumber() > 0) {
       setNftOwner(true);
     } else {
-      ''
+      ("");
     }
-  }
+  };
 
   useEffect(() => {
     checkMetaMaskInstalled();
@@ -206,6 +209,36 @@ export default function Home() {
                 預入残高：{bankBalance}
               </span>
             </div>
+            {nftOwner ? (
+              <>
+                <form className="flex pl-1 py-1 mb-1 bg-white border border-gray-400">
+                  <input
+                    type="text"
+                    className="w-5/12 ml-2 text-center border border-gray-400"
+                    name="transferAddress"
+                    placeholder="Wallet Address"
+                    onChange={""}
+                    value={""}
+                  />
+                  <input
+                    type="text"
+                    className="w-5/12 ml-2 text-right border border-gray-400"
+                    name="transferAmount"
+                    placeholder={`100`}
+                    onChange={""}
+                    value={""}
+                  />
+                  <button
+                    className="w-2/12 mx-2 bg-white border-blue-500 hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
+                    onClick={""}
+                  >
+                    移転
+                  </button>
+                </form>
+              </>
+            ) : (
+              <></>
+            )}
           </div>
         ) : (
           <div className="flex flex-col justify-center items-center mb-20 font-bold text-2xl gap-y-3">

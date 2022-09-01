@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
-import { ethers } from "axios";
+import { ethers } from "ethers";
 import axios from "axios";
 import { memberNFTAddress, tokenBankAddress } from "../../contracts";
 import MemberNFT from "../contracts/MemberNFT.json";
@@ -64,7 +64,7 @@ export default function Home() {
       //metamaskは「インフラ」と言うプロバイダが使われており、「ethereum」と指定する
       const provider = new ethers.providers.Web3Provider(ethereum);
       //メタマスクのアカウントを取得
-      const signer = provider.getSinger();
+      const signer = provider.getSigner();
       //TokenBankのコントラクトオブジェクトを作る。ethメソッドでインスタンス化
       const tokenBankContract = new ethers.Contract(
         tokenBankAddress,
@@ -85,7 +85,7 @@ export default function Home() {
       console.log(`totalDeposit: ${totalDeposit}`);
       setTokenBalance(totalDeposit.toNumber());
 
-      dheckNft(accounts[0]);
+      checkNft(accounts[0]);
 
       ethereum.on("accountsChanged", checkAccountChanged); //①
       ethereum.on("chainChanged", checkChainId); //②
@@ -127,6 +127,14 @@ export default function Home() {
     } else {
       ("");
     }
+  };
+
+  const handler = (e) => {
+    setInputData((prevData) => ({
+      //スプレッド構文。変更したいものだけを入れる
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   useEffect(() => {
@@ -217,16 +225,16 @@ export default function Home() {
                     className="w-5/12 ml-2 text-center border border-gray-400"
                     name="transferAddress"
                     placeholder="Wallet Address"
-                    onChange={""}
-                    value={""}
+                    onChange={handler}
+                    value={inputData.transferAddress}
                   />
                   <input
                     type="text"
                     className="w-5/12 ml-2 text-right border border-gray-400"
                     name="transferAmount"
                     placeholder={`100`}
-                    onChange={""}
-                    value={""}
+                    onChange={handler}
+                    value={inputData.transferAmount}
                   />
                   <button
                     className="w-2/12 mx-2 bg-white border-blue-500 hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"

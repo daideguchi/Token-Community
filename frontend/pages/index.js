@@ -81,6 +81,7 @@ export default function Home() {
       console.log(`bBalance: ${bBalance}`);
       setBankBalance(bBalance.toNumber());
 
+      //預入残高の更新
       const totalDeposit = await tokenBankContract.bankTotalDeposit();
       console.log(`totalDeposit: ${totalDeposit}`);
       setBankTotalDeposit(totalDeposit.toNumber());
@@ -132,7 +133,10 @@ export default function Home() {
   const tokenTransfer = async (event) => {
     //ボタンを押してもリロードされないようにする https://qiita.com/yokoto/items/27c56ebc4b818167ef9e
     event.preventDefault();
-    if (tokenBalance >= inputData.transferAmount && zeroAddress != inputData.transferAddress) {
+    if (
+      tokenBalance >= inputData.transferAmount &&
+      zeroAddress != inputData.transferAddress
+    ) {
       try {
         const { ethereum } = window;
         const provider = new ethers.providers.Web3Provider(ethereum);
@@ -142,70 +146,108 @@ export default function Home() {
           TokenBank.abi,
           signer
         );
-        const tx = await tokenBankContract.transfer(inputData.transferAddress, inputData.transferAmount);
+        const tx = await tokenBankContract.transfer(
+          inputData.transferAddress,
+          inputData.transferAmount
+        );
         //トランザクションの完了を待つ
         await tx.wait();
 
         const tBalance = await tokenBankContract.balanceOf(account);
         setTokenBalance(tBalance.toNumber());
         //transferが終わったらinputを空にする
-        setInputData(prevData => ({
+        setInputData((prevData) => ({
           ...prevData,
           transferAddress: "",
-          transferAmount: ""
-        }))
+          transferAmount: "",
+        }));
       } catch (err) {
         console.log(err);
       }
     } else {
-      alert("所持残高を超えるトークン及びゼロアドレス宛は指定できません")
+      alert("所持残高を超えるトークン及びゼロアドレス宛は指定できません");
     }
-  }
+  };
 
+  const tokenDeposit = async (event) => {
+    //ボタンを押してもリロードされないようにする https://qiita.com/yokoto/items/27c56ebc4b818167ef9e
+    event.preventDefault();
+    if (tokenBalance >= inputData.depositAmount) {
+      try {
+        const { ethereum } = window;
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const tokenBankContract = new ethers.Contract(
+          tokenBankAddress,
+          TokenBank.abi,
+          signer
+        );
+        const tx = await tokenBankContract.deposit(inputData.depositAmount);
+        //トランザクションの完了を待つ
+        await tx.wait();
 
-   const tokenDeposit = async (event) => {
-     //ボタンを押してもリロードされないようにする https://qiita.com/yokoto/items/27c56ebc4b818167ef9e
-     event.preventDefault();
-     if (
-      tokenBalance >= inputData.depositAmount
-     ) {
-       try {
-         const { ethereum } = window;
-         const provider = new ethers.providers.Web3Provider(ethereum);
-         const signer = provider.getSigner();
-         const tokenBankContract = new ethers.Contract(
-           tokenBankAddress,
-           TokenBank.abi,
-           signer
-         );
-         const tx = await tokenBankContract.deposit(
-           inputData.depositAmount,
-         );
-         //トランザクションの完了を待つ
-         await tx.wait();
+        const tBalance = await tokenBankContract.balanceOf(account);
+        const bBalance = await tokenBankContract.bankBalanceOf(account);
+        const totalDeposit = await tokenBankContract.bankTotalDeposit();
 
-         const tBalance = await tokenBankContract.balanceOf(account);
-         const bBalance = await tokenBankContract.bankBalanceOf(account);
-         setTokenBalance(tBalance.toNumber());
-         setBankBalance(bBalance.toNumber());
-         //transferが終わったらinputを空にする
-         setInputData((prevData) => ({
-           ...prevData,
-           depositAmount: "",
-         }));
-       } catch (err) {
-         console.log(err);
-       }
-     } else {
-       alert("所持残高を超えるトークンは預入できません");
-     }
-   };
+        setTokenBalance(tBalance.toNumber());
+        setBankBalance(bBalance.toNumber());
+        setBankTotalDeposit(totalDeposit.toNumber());
+        //transferが終わったらinputを空にする
+        setInputData((prevData) => ({
+          ...prevData,
+          depositAmount: "",
+        }));
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      alert("所持残高を超えるトークンは預入できません");
+    }
+  };
+
+  const tokenWithdraw = async (event) => {
+    //ボタンを押してもリロードされないようにする https://qiita.com/yokoto/items/27c56ebc4b818167ef9e
+    event.preventDefault();
+    if (bankBalance >= inputData.withdrawAmount) {
+      try {
+        const { ethereum } = window;
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const tokenBankContract = new ethers.Contract(
+          tokenBankAddress,
+          TokenBank.abi,
+          signer
+        );
+        const tx = await tokenBankContract.withdraw(inputData.withdrawAmount);
+        //トランザクションの完了を待つ
+        await tx.wait();
+
+        const tBalance = await tokenBankContract.balanceOf(account);
+        const bBalance = await tokenBankContract.bankBalanceOf(account);
+        const totalDeposit = await tokenBankContract.bankTotalDeposit();
+
+        setTokenBalance(tBalance.toNumber());
+        setBankBalance(bBalance.toNumber());
+        setBankTotalDeposit(totalDeposit.toNumber());
+        //transferが終わったらinputを空にする
+        setInputData((prevData) => ({
+          ...prevData,
+          withdrawAmount: "",
+        }));
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      alert("預入残高を超えるトークンは引き出しできません");
+    }
+  };
 
   const handler = (e) => {
     setInputData((prevData) => ({
       //スプレッド構文。変更したいものだけを入れる
       ...prevData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
@@ -213,9 +255,6 @@ export default function Home() {
     checkMetaMaskInstalled();
     checkChainId();
   }, []);
-
-
-
 
   // 以下、フロントエンド
   return (
@@ -332,6 +371,22 @@ export default function Home() {
                     onClick={tokenDeposit}
                   >
                     預入
+                  </button>
+                </form>
+                <form className="flex pl-1 py-1 mb-1 bg-white border border-gray-400">
+                  <input
+                    type="text"
+                    className="w-10/12 ml-2 text-right border border-gray-400"
+                    name="withdrawAmount"
+                    placeholder={`100`}
+                    onChange={handler}
+                    value={inputData.withdrawAmount}
+                  />
+                  <button
+                    className="w-2/12 mx-2 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
+                    onClick={tokenWithdraw}
+                  >
+                    引出
                   </button>
                 </form>
               </>

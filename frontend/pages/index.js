@@ -121,10 +121,36 @@ export default function Home() {
       signer
     );
     const balance = await memberNFTContract.balanceOf(addr);
-    console.log(`nftBalance: &{balance.toNumber()}`);
+    console.log(`nftBalance: ${balance.toNumber()}`);
 
     if (balance.toNumber() > 0) {
       setNftOwner(true);
+      for (let i = 0; i < balance.toNumber(); i++) {
+        //ERC721のfunction tokenOfOwnerByIndex「tokenIdを取得できる」返り値はtokenId
+        const tokenId = await memberNFTContract.tokenOfOwnerByIndex(addr, i);
+        //メタデータ取得「tokenURIファンクションで取得できる」
+        let tokenURI = await memberNFTContract.tokenURI(tokenId);
+        //ipfsのデータをhttpに持ってくる 「ipfs.io」を使う
+        tokenURI = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+        const meta = await axios.get(tokenURI);
+
+        const name = meta.data.name;
+        const description = meta.data.description;
+        const imageURI = meta.data.image.replace(
+          "ipfs://",
+          "https://ipfs.io/ipfs/"
+        );
+
+        const item = {
+          tokenId,
+          name,
+          description,
+          tokenURI,
+          imageURI,
+        };
+        //useStateの更新  ...items これまでのアイテムをそのままにして（更新せず）追加する
+        setItems((items) => [...items, item]);
+      }
     } else {
       ("");
     }
@@ -256,7 +282,7 @@ export default function Home() {
     checkChainId();
   }, []);
 
-  // 以下、フロントエンド
+  //////////////////// 以下、フロントエンド///////////////////////////////////////////
   return (
     <div
       className={
@@ -388,7 +414,27 @@ export default function Home() {
                   >
                     引出
                   </button>
-                </form>
+                  </form>
+                  {/* itemsから一つずつ取り出して、itemに格納している */}
+                {items.map((item, i) => (
+                  <div key={i} className="flex justify-center pl-1 py-2 mb-1">
+                    <div className="flex flex-col md:flex-row md:max-w-xl rounded-lg bg-white shadow-lg">
+                      <img
+                        className=" w-full h-96 md:h-auto object-cover md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg"
+                        src={item.imageURI}
+                        alt=""
+                      />
+                      <div className="p-6 flex flex-col justify-start">
+                        <h5 className="text-gray-900 text-xl font-medium mb-2">
+                          {item.name}
+                        </h5>
+                        <p className="text-gray-700 text-base mb-4">{item.description}</p>
+                        {/* tokenIdをjavascriptが扱えるようにtoNumber()を使う */}
+                        <p className="text-gray-600 text-xs">所有NFT# {item.tokenId.toNumber()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </>
             ) : (
               <></>

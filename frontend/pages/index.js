@@ -77,13 +77,13 @@ export default function Home() {
       //useステートでtBalanceを保存,BigNumberを扱えるようにtoNumberで変換
       setTokenBalance(tBalance.toNumber());
 
-      const bBalance = await tokenBankContract.bankBalanceOf(account[0]);
+      const bBalance = await tokenBankContract.bankBalanceOf(accounts[0]);
       console.log(`bBalance: ${bBalance}`);
-      setTokenBalance(bBalance.toNumber());
+      setBankBalance(bBalance.toNumber());
 
       const totalDeposit = await tokenBankContract.bankTotalDeposit();
       console.log(`totalDeposit: ${totalDeposit}`);
-      setTokenBalance(totalDeposit.toNumber());
+      setBankTotalDeposit(totalDeposit.toNumber());
 
       checkNft(accounts[0]);
 
@@ -129,11 +129,44 @@ export default function Home() {
     }
   };
 
+  const tokenTransfer = async (event) => {
+    //ボタンを押してもリロードされないようにする https://qiita.com/yokoto/items/27c56ebc4b818167ef9e
+    event.preventDefault();
+    if (tokenBalance >= inputData.transferAmount && zeroAddress != inputData.transferAddress) {
+      try {
+        const { ethereum } = window;
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const tokenBankContract = new ethers.Contract(
+          tokenBankAddress,
+          TokenBank.abi,
+          signer
+        );
+        const tx = await tokenBankContract.transfer(inputData.transferAddress, inputData.transferAmount);
+        //トランザクションの完了を待つ
+        await tx.wait();
+
+        const tBalance = await tokenBankContract.balanceOf(account);
+        setTokenBalance(tBalance.toNumber());
+        //transferが終わったらinputを空にする
+        setInputData(prevData => ({
+          ...prevData,
+          transferAddress: "",
+          transferAmount: ""
+        }))
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      alert("所持残高を超えるトークン及びゼロアドレス宛は指定できません")
+    }
+  }
+
   const handler = (e) => {
     setInputData((prevData) => ({
       //スプレッド構文。変更したいものだけを入れる
       ...prevData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     }));
   };
 
@@ -141,6 +174,9 @@ export default function Home() {
     checkMetaMaskInstalled();
     checkChainId();
   }, []);
+
+
+
 
   // 以下、フロントエンド
   return (
@@ -238,7 +274,7 @@ export default function Home() {
                   />
                   <button
                     className="w-2/12 mx-2 bg-white border-blue-500 hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
-                    onClick={""}
+                    onClick={tokenTransfer}
                   >
                     移転
                   </button>

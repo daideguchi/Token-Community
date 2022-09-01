@@ -162,6 +162,45 @@ export default function Home() {
     }
   }
 
+
+   const tokenDeposit = async (event) => {
+     //ボタンを押してもリロードされないようにする https://qiita.com/yokoto/items/27c56ebc4b818167ef9e
+     event.preventDefault();
+     if (
+      tokenBalance >= inputData.depositAmount
+     ) {
+       try {
+         const { ethereum } = window;
+         const provider = new ethers.providers.Web3Provider(ethereum);
+         const signer = provider.getSigner();
+         const tokenBankContract = new ethers.Contract(
+           tokenBankAddress,
+           TokenBank.abi,
+           signer
+         );
+         const tx = await tokenBankContract.deposit(
+           inputData.depositAmount,
+         );
+         //トランザクションの完了を待つ
+         await tx.wait();
+
+         const tBalance = await tokenBankContract.balanceOf(account);
+         const bBalance = await tokenBankContract.bankBalanceOf(account);
+         setTokenBalance(tBalance.toNumber());
+         setBankBalance(bBalance.toNumber());
+         //transferが終わったらinputを空にする
+         setInputData((prevData) => ({
+           ...prevData,
+           depositAmount: "",
+         }));
+       } catch (err) {
+         console.log(err);
+       }
+     } else {
+       alert("所持残高を超えるトークンは預入できません");
+     }
+   };
+
   const handler = (e) => {
     setInputData((prevData) => ({
       //スプレッド構文。変更したいものだけを入れる
@@ -277,6 +316,22 @@ export default function Home() {
                     onClick={tokenTransfer}
                   >
                     移転
+                  </button>
+                </form>
+                <form className="flex pl-1 py-1 mb-1 bg-white border border-gray-400">
+                  <input
+                    type="text"
+                    className="w-10/12 ml-2 text-right border border-gray-400"
+                    name="depositAmount"
+                    placeholder={`100`}
+                    onChange={handler}
+                    value={inputData.depositAmount}
+                  />
+                  <button
+                    className="w-2/12 mx-2 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
+                    onClick={tokenDeposit}
+                  >
+                    預入
                   </button>
                 </form>
               </>
